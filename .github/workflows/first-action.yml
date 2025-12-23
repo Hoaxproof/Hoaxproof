@@ -1,0 +1,18 @@
+name: My First Workflow
+
+# The Event: Run this when I push code to the repository
+on: [push]
+
+# The Job
+jobs:
+  example-job:
+    # The machine: Run on a virtual Linux computer
+    runs-on: ubuntu-latest
+    
+    # The Steps
+    steps:
+      - name: Say Hello
+        run: echo "Hello! I am a robot running on GitHub."
+        
+      - name: Show the date
+        run: date
