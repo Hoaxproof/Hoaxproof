@@ -9,10 +9,10 @@ jobs:
     # The machine: Run on a virtual Linux computer
     runs-on: ubuntu-latest
     
-    # The Steps
     steps:
-      - name: Say Hello
-        run: echo "Hello! I am a robot running on GitHub."
-        
-      - name: Show the date
-        run: date
+      # This is a pre-made action by GitHub to download your code
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: List files
+        run: ls -la
