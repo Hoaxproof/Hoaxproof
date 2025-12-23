@@ -1,3 +1,5 @@
+name: Maintenance Bot
+
 on:
   workflow_dispatch:
   repository_dispatch:
@@ -9,25 +11,29 @@ jobs:
     timeout-minutes: 360
 
     steps:
-      
-uses: actions/checkout@v3
+      - name: Checkout Code
+        uses: actions/checkout@v3
 
-      
-uses: actions/setup-python@v4
-      with:
-        python-version: '3.10'
+      - name: Setup Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.10'
 
-      
-run: pip install -r requirements.txt
+      - name: Install Dependencies
+        run: pip install -r requirements.txt
 
-      
-env:
-        DISCORD_TOKEN: ${{ secrets.DISCORD_TOKEN }}
-        MONGODB_URI: ${{ secrets.MONGODB_URI }}
-        PYTHONUNBUFFERED: 1
-      run: timeout 21000s python main.py || true
+      - name: Run Script
+        env:
+          DISCORD_TOKEN: ${{ secrets.DISCORD_TOKEN }}
+          MONGODB_URI: ${{ secrets.MONGODB_URI }}
+          PYTHONUNBUFFERED: 1
+        # Run for 5h 50m (21000s) then stop so we can restart
+        run: timeout 21000s python main.py || true
 
-      
-if: always()
-      run: |
-        curl -X POST https://api.github.com/repos/$%7B%7B github.repository }}/dispatches \-H "Accept: application/vnd.github.v3+json" \-H "Authorization: token ${{ secrets.PAT_TOKEN }}" \-d '{"event_type": "sync-event"}'
+      - name: Restart Workflow
+        if: always()
+        run: |
+          curl -X POST https://api.github.com/repos/${{ github.repository }}/dispatches \
+          -H "Accept: application/vnd.github.v3+json" \
+          -H "Authorization: token ${{ secrets.PAT_TOKEN }}" \
+          -d '{"event_type": "sync-event"}'
