@@ -1,39 +1,38 @@
-name: Maintenance Bot
+name: Generate System Report
 
+# TRIGGER: Runs when you push code OR when you click the button manually
 on:
+  push:
   workflow_dispatch:
-  repository_dispatch:
-    types: [sync-event]
 
 jobs:
-  maintenance:
+  generate-report:
     runs-on: ubuntu-latest
-    timeout-minutes: 360
 
     steps:
+      # Step 1: Download your repository code
       - name: Checkout Code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
-      - name: Setup Python
-        uses: actions/setup-python@v4
-        with:
-          python-version: '3.10'
-
-      - name: Install Dependencies
-        run: pip install -r requirements.txt
-
-      - name: Run Script
-        env:
-          DISCORD_TOKEN: ${{ secrets.DISCORD_TOKEN }}
-          MONGODB_URI: ${{ secrets.MONGODB_URI }}
-          PYTHONUNBUFFERED: 1
-        # Run for 5h 50m (21000s) then stop so we can restart
-        run: timeout 21000s python main.py || true
-
-      - name: Restart Workflow
-        if: always()
+      # Step 2: Run Linux commands to gather info and save to a text file
+      - name: Create System Info File
         run: |
-          curl -X POST https://api.github.com/repos/${{ github.repository }}/dispatches \
-          -H "Accept: application/vnd.github.v3+json" \
-          -H "Authorization: token ${{ secrets.PAT_TOKEN }}" \
-          -d '{"event_type": "sync-event"}'
+          echo "--- GITHUB ACTIONS REPORT ---" > report.txt
+          echo "Date: $(date)" >> report.txt
+          echo "" >> report.txt
+          echo "--- OPERATING SYSTEM ---" >> report.txt
+          cat /etc/os-release >> report.txt
+          echo "" >> report.txt
+          echo "--- DISK SPACE ---" >> report.txt
+          df -h >> report.txt
+          
+      # Step 3: Verify the file exists (prints content to the logs)
+      - name: Read File to Console
+        run: cat report.txt
+
+      # Step 4: Upload the file so you can download it later
+      - name: Upload Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: my-server-report
+          path: report.txt
