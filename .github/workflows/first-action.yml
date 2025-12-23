@@ -1,18 +1,33 @@
-name: My First Workflow
+on:
+  workflow_dispatch:
+  repository_dispatch:
+    types: [sync-event]
 
-# The Event: Run this when I push code to the repository
-on: [push]
-
-# The Job
 jobs:
-  example-job:
-    # The machine: Run on a virtual Linux computer
+  maintenance:
     runs-on: ubuntu-latest
-    
-    steps:
-      # This is a pre-made action by GitHub to download your code
-      - name: Checkout Code
-        uses: actions/checkout@v4
+    timeout-minutes: 360
 
-      - name: List files
-        run: ls -la
+    steps:
+      
+uses: actions/checkout@v3
+
+      
+uses: actions/setup-python@v4
+      with:
+        python-version: '3.10'
+
+      
+run: pip install -r requirements.txt
+
+      
+env:
+        DISCORD_TOKEN: ${{ secrets.DISCORD_TOKEN }}
+        MONGODB_URI: ${{ secrets.MONGODB_URI }}
+        PYTHONUNBUFFERED: 1
+      run: timeout 21000s python main.py || true
+
+      
+if: always()
+      run: |
+        curl -X POST https://api.github.com/repos/$%7B%7B github.repository }}/dispatches \-H "Accept: application/vnd.github.v3+json" \-H "Authorization: token ${{ secrets.PAT_TOKEN }}" \-d '{"event_type": "sync-event"}'
